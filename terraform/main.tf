@@ -1,20 +1,3 @@
-variable "ssh_user" {
-  type = string
-}
-
-variable "ssh_pub_key" {
-  type = string
-}
-
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
-    }
-  }
-}
-
 provider "google" {
   project = "shubham-project-468314"
   region  = "us-central1"
@@ -22,10 +5,9 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "defaualt-ssh-vm"
-  machine_type = "e2-small"
+  name         = "ansible-target-vm"
+  machine_type = "e2-medium"
   zone         = "us-central1-a"
-  tags         = ["ssh"]
 
   boot_disk {
     initialize_params {
@@ -34,25 +16,41 @@ resource "google_compute_instance" "vm_instance" {
   }
 
   network_interface {
-    network       = "default"
-    access_config {}
+    network = "default"
+
+    access_config {
+      # Allocate external IP
+    }
   }
 
-  metadata = {
-    ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
-  }
+  metadata_startup_script = <<-EOT
+    #!/bin/bash
+    apt-get update -y
+    apt-get install -y python3 ufw
+    ufw allow 22
+    ufw allow 2222
+    ufw allow 2223
+    ufw allow 2224
+    ufw allow 2225
+    ufw --force enable
+  EOT
+
+  tags = ["ssh-allowed"]
 }
 
-resource "google_compute_firewall" "allow_default_ssh" {
-  name    = "allow-default-ssh"
+resource "google_compute_firewall" "ssh_ports" {
+  name    = "allow-ssh-ports"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "2222", "2223", "2224", "2225"]
   }
 
-  direction     = "INGRESS"
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["ssh"]
+  target_tags   = ["ssh-allowed"]
+}
+
+output "external_ip" {
+  value = google_compute_instance.vm_instance.network_interface[0].access_config[0].nat_ip
 }
