@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "multi-port-sssh-vm"
+  name         = "multii-port-sssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -39,34 +39,28 @@ resource "google_compute_instance" "vm_instance" {
   }
 
   metadata = {
-    ssh-keys       = "${var.ssh_user}:${var.ssh_pub_key}"
+    ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
     startup-script = <<-EOF
       #!/bin/bash
 
-      # Define allowed SSH ports
       PORTS="22 2222 2223 2224 2225 2226"
 
-      # Remove any existing Port entries
+      # Remove any existing Port lines
       sed -i '/^Port /d' /etc/ssh/sshd_config
 
-      # Add allowed Port entries
+      # Add custom SSH ports
       for PORT in $PORTS; do
         echo "Port $PORT" >> /etc/ssh/sshd_config
       done
 
-      # Disable password-based login
-      sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-      sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-
-      # Restart SSH service
+      # Restart SSH daemon
       systemctl restart sshd
     EOF
   }
 }
 
-# ✅ Firewall rule with new unique name to avoid conflict
-resource "google_compute_firewall" "allow_custom_ssh_ports_v3" {
-  name    = "allow-custom-ssh-ports-v3"
+resource "google_compute_firewall" "allow_custom_ssh_ports" {
+  name    = "allow-custom-ssh-ports"
   network = "default"
 
   allow {
@@ -74,11 +68,7 @@ resource "google_compute_firewall" "allow_custom_ssh_ports_v3" {
     ports    = ["22", "2222", "2223", "2224", "2225", "2226"]
   }
 
+  target_tags   = ["ssh"]
   direction     = "INGRESS"
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["ssh"]
-}
-
-output "vm_ip" {
-  value = google_compute_instance.vm_instance.network_interface[0].access_config[0].nat_ip
 }
