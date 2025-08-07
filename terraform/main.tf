@@ -64,9 +64,9 @@ resource "google_compute_instance" "vm_instance" {
   }
 }
 
-# ✅ Firewall rule to allow SSH on ports 22, 2222–2226
-resource "google_compute_firewall" "allow_custom_ssh_ports" {
-  name    = "allow-custom-ssh-ports"
+# ✅ Firewall rule (renamed to avoid 409 conflict)
+resource "google_compute_firewall" "allow_custom_ssh_ports_v2" {
+  name    = "allow-custom-ssh-ports-v2"
   network = "default"
 
   allow {
