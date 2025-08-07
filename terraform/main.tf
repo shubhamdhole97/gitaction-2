@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "small-ssess"
+  name         = "multi-port-ssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -42,38 +42,36 @@ resource "google_compute_instance" "vm_instance" {
     ssh-keys       = "${var.ssh_user}:${var.ssh_pub_key}"
     startup-script = <<-EOF
       #!/bin/bash
-      PORTS="22 2221 2222 2223 2224 2225"
+
+      # Define allowed SSH ports
+      PORTS="22 2222 2223 2224 2225 2226"
+
+      # Remove existing Port lines
+      sed -i '/^Port /d' /etc/ssh/sshd_config
+
+      # Add new Port lines
       for PORT in $PORTS; do
-        grep -q "^Port $PORT" /etc/ssh/sshd_config || echo "Port $PORT" >> /etc/ssh/sshd_config
+        echo "Port $PORT" >> /etc/ssh/sshd_config
       done
+
+      # Disable password authentication
+      sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+      sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+      # Restart SSH
       systemctl restart sshd
     EOF
   }
 }
 
-# ✅ Firewall rule to allow custom SSH ports
+# ✅ Firewall rule to allow SSH on ports 22, 2222–2226
 resource "google_compute_firewall" "allow_custom_ssh_ports" {
   name    = "allow-custom-ssh-ports"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["2221", "2222", "2223", "2224", "2225"]
-  }
-
-  direction     = "INGRESS"
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["ssh"]
-}
-
-# ✅ Optional: Allow default SSH port 22 (if not already allowed)
-resource "google_compute_firewall" "allow_ssh_22" {
-  name    = "allow-ssh-22"
-  network = "default"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "2222", "2223", "2224", "2225", "2226"]
   }
 
   direction     = "INGRESS"
