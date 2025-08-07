@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "multi-port-ssh-vm"
+  name         = "multi-port-sssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -46,27 +46,27 @@ resource "google_compute_instance" "vm_instance" {
       # Define allowed SSH ports
       PORTS="22 2222 2223 2224 2225 2226"
 
-      # Remove existing Port lines
+      # Remove any existing Port entries
       sed -i '/^Port /d' /etc/ssh/sshd_config
 
-      # Add new Port lines
+      # Add allowed Port entries
       for PORT in $PORTS; do
         echo "Port $PORT" >> /etc/ssh/sshd_config
       done
 
-      # Disable password authentication
+      # Disable password-based login
       sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
       sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-      # Restart SSH
+      # Restart SSH service
       systemctl restart sshd
     EOF
   }
 }
 
-# ✅ Firewall rule (renamed to avoid 409 conflict)
-resource "google_compute_firewall" "allow_custom_ssh_ports_v2" {
-  name    = "allow-custom-ssh-ports-v2"
+# ✅ Firewall rule with new unique name to avoid conflict
+resource "google_compute_firewall" "allow_custom_ssh_ports_v3" {
+  name    = "allow-custom-ssh-ports-v3"
   network = "default"
 
   allow {
