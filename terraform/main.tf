@@ -16,9 +16,9 @@ terraform {
 }
 
 provider "google" {
-  project     = "shubham-project-468314"
-  region      = "us-central1"
-  zone        = "us-central1-a"
+  project = "shubham-project-468314"
+  region  = "us-central1"
+  zone    = "us-central1-a"
 }
 
 resource "google_compute_instance" "vm_instance" {
@@ -34,16 +34,12 @@ resource "google_compute_instance" "vm_instance" {
   }
 
   network_interface {
-    network = "default"
+    network       = "default"
     access_config {}
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
-
-    metadata = {
-    ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
-
+    ssh-keys       = "${var.ssh_user}:${var.ssh_pub_key}"
     startup-script = <<-EOF
       #!/bin/bash
       PORTS="22 2221 2222 2223 2224 2225"
@@ -54,6 +50,7 @@ resource "google_compute_instance" "vm_instance" {
     EOF
   }
 }
+
 output "vm_ip" {
   value = google_compute_instance.vm_instance.network_interface[0].access_config[0].nat_ip
 }
