@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "muaaltii-port-sssh-vm"
+  name         = "muaaaaaltii-port-sssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -59,8 +59,8 @@ resource "google_compute_instance" "vm_instance" {
   }
 }
 
-resource "google_compute_firewall" "allow_custom_ssh_portss" {
-  name    = "allow-custom-ssh-portss"
+resource "google_compute_firewall" "allow_custom_sash_portss" {
+  name    = "allow-custom-sash-portss"
   network = "default"
 
   allow {
