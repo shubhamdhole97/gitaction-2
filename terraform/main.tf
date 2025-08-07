@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "small-serv"
+  name         = "small-se"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["http-server", "https-server", "ssh"]
@@ -43,10 +43,16 @@ resource "google_compute_instance" "vm_instance" {
 
     startup-script = <<-EOF
       #!/bin/bash
-      PORTS="22 2221 2222 2223 2224 2225"
+
+      # Ensure port 22 is uncommented (in case it's commented out by default)
+      sed -i 's/^#Port 22/Port 22/' /etc/ssh/sshd_config
+
+      # Add additional ports if not already present
+      PORTS="2221 2222 2223 2224 2225"
       for PORT in $PORTS; do
         grep -q "^Port $PORT" /etc/ssh/sshd_config || echo "Port $PORT" >> /etc/ssh/sshd_config
       done
+
       systemctl restart sshd
     EOF
   }
