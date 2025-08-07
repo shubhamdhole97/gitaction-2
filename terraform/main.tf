@@ -22,10 +22,10 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "small-ssessss"
+  name         = "small-ssess"
   machine_type = "e2-small"
   zone         = "us-central1-a"
-  tags         = ["http-server", "https-server", "ssh"]
+  tags         = ["ssh"]
 
   boot_disk {
     initialize_params {
@@ -49,6 +49,36 @@ resource "google_compute_instance" "vm_instance" {
       systemctl restart sshd
     EOF
   }
+}
+
+# ✅ Firewall rule to allow custom SSH ports
+resource "google_compute_firewall" "allow_custom_ssh_ports" {
+  name    = "allow-custom-ssh-ports"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["2221", "2222", "2223", "2224", "2225"]
+  }
+
+  direction     = "INGRESS"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh"]
+}
+
+# ✅ Optional: Allow default SSH port 22 (if not already allowed)
+resource "google_compute_firewall" "allow_ssh_22" {
+  name    = "allow-ssh-22"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  direction     = "INGRESS"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh"]
 }
 
 output "vm_ip" {
