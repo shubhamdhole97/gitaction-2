@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "multaai-port-ssh-vm"
+  name         = "defaualt-ssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -40,13 +40,19 @@ resource "google_compute_instance" "vm_instance" {
 
   metadata = {
     ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
-    startup-script = <<-EOF
-      #!/bin/bash
-
-      # Only use default port 22 if no firewall rule
-      sed -i '/^Port /d' /etc/ssh/sshd_config
-      echo "Port 22" >> /etc/ssh/sshd_config
-      systemctl restart sshd
-    EOF
   }
+}
+
+resource "google_compute_firewall" "allow_default_ssh" {
+  name    = "allow-default-ssh"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  direction     = "INGRESS"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh"]
 }
