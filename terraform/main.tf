@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "muaaaaaltii-port-sssh-vm"
+  name         = "multaai-port-ssh-vm"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh"]
@@ -43,32 +43,10 @@ resource "google_compute_instance" "vm_instance" {
     startup-script = <<-EOF
       #!/bin/bash
 
-      PORTS="22 2222 2223 2224 2225 2226"
-
-      # Remove any existing Port lines
+      # Only use default port 22 if no firewall rule
       sed -i '/^Port /d' /etc/ssh/sshd_config
-
-      # Add custom SSH ports
-      for PORT in $PORTS; do
-        echo "Port $PORT" >> /etc/ssh/sshd_config
-      done
-
-      # Restart SSH daemon
+      echo "Port 22" >> /etc/ssh/sshd_config
       systemctl restart sshd
     EOF
   }
-}
-
-resource "google_compute_firewall" "allow_custom_sash_portss" {
-  name    = "allow-custom-sash-portss"
-  network = "default"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22", "2222", "2223", "2224", "2225", "2226"]
-  }
-
-  target_tags   = ["ssh"]
-  direction     = "INGRESS"
-  source_ranges = ["0.0.0.0/0"]
 }
