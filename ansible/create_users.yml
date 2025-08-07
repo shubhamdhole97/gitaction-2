@@ -8,6 +8,7 @@
       - bob
       - charlie
       - shubham
+
   tasks:
     - name: Ensure users exist
       user:
@@ -28,9 +29,10 @@
 
     - name: Add shared public key to authorized_keys
       copy:
-        src: keys/shared.pub
+        src: keys/shared.pub        # Relative to playbook or working dir
         dest: "/home/{{ item }}/.ssh/authorized_keys"
         owner: "{{ item }}"
         group: "{{ item }}"
         mode: 0600
+        remote_src: no              # <--- THIS IS CRUCIAL!
       loop: "{{ users_to_create }}"

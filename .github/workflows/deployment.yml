@@ -1,4 +1,4 @@
-name: Terraform GCP VM Deploy
+name: GCP VM Provisioning with Terraform & Ansible
 
 on:
   push:
@@ -53,8 +53,8 @@ jobs:
 
     - name: 🧾 Write Shared Public Key from Secret
       run: |
-        mkdir -p ansible/keys
-        echo "${{ secrets.SHARED_PUB_KEY }}" > ansible/keys/shared.pub
+        mkdir -p ../ansible/keys
+        echo "${{ secrets.SHARED_PUB_KEY }}" > ../ansible/keys/shared.pub
 
     - name: 📝 Update Inventory with VM IP
       run: |
@@ -64,10 +64,3 @@ jobs:
     - name: ▶️ Run Ansible Playbook
       run: |
         ansible-playbook -i ../ansible/inventory_dynamic.ini ../ansible/create_users.yml
-
-    - name: ➕ Add shared public key to all users
-      run: |
-        for user in alice bob charlie; do
-          ansible all -i ../ansible/inventory_dynamic.ini -b -m file -a "path=/home/$user/.ssh state=directory mode=0700 owner=$user group=$user"
-          ansible all -i ../ansible/inventory_dynamic.ini -b -m copy -a "src=ansible/keys/shared.pub dest=/home/$user/.ssh/authorized_keys owner=$user group=$user mode=0600"
-        done
