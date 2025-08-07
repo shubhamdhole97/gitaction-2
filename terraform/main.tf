@@ -22,10 +22,10 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "small-serv"
+  name         = "small-servsss"
   machine_type = "e2-small"
   zone         = "us-central1-a"
-  tags         = ["http-server", "https-server", "ssh"]
+  tags         = ["ssh-access"]  # tag used for firewall targeting
 
   boot_disk {
     initialize_params {
@@ -50,6 +50,21 @@ resource "google_compute_instance" "vm_instance" {
       systemctl restart sshd
     EOF
   }
+}
+
+# ✅ Firewall rule to allow SSH on multiple ports
+resource "google_compute_firewall" "allow_custom_ssh" {
+  name    = "allow-custom-ssh"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "2221", "2222", "2223", "2224", "2225"]
+  }
+
+  direction     = "INGRESS"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh-access"]
 }
 
 output "vm_ip" {
