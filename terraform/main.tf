@@ -22,7 +22,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "small-servsss"
+  name         = "small-server"
   machine_type = "e2-small"
   zone         = "us-central1-a"
   tags         = ["ssh-access"]  # tag used for firewall targeting
@@ -53,8 +53,8 @@ resource "google_compute_instance" "vm_instance" {
 }
 
 # ✅ Firewall rule to allow SSH on multiple ports
-resource "google_compute_firewall" "allow_custom_ssh" {
-  name    = "allow-custom-ssh"
+resource "google_compute_firewall" "allow_customm_ssh" {
+  name    = "allow-customm-ssh"
   network = "default"
 
   allow {
